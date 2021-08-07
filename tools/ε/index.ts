@@ -29,7 +29,6 @@ abstract class Component {
  */
 function createElement<C>(name: C, attributes: Attributes, children: Children): Element<C> {
   return ({
-    id: nbComponents ++,
     container: name,
     attributes,
     children

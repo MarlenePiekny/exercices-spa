@@ -1,10 +1,14 @@
+import { isEqual } from 'lodash';
 import {
   Element,
 } from './frameworkTypes';
 
-export function compare(currentDom: Element, nextDom: Element) {
+export function compare(currentDom: Element, nextDom: Element):boolean {
   const currentDomStretch = stretchElement(currentDom);
   const nextDomStretch = stretchElement(nextDom);
+  console.log('current :', currentDomStretch);
+  console.log('next :', nextDomStretch);
+  return isEqual(currentDomStretch, nextDomStretch);
 }
 
 function getRenderElementFromComponentElement(e: Element): Element {

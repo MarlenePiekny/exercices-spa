@@ -7,4 +7,4 @@ import Header2 from './components/Header2';
 const elementDom1 = new Header().render();
 const elementDom2 = new Header2().render();
 
-compare(elementDom1, elementDom2);
+console.log(compare(elementDom1, elementDom2));
