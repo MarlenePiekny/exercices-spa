@@ -8,6 +8,7 @@ import elementToString from './elementToString';
 
 // Variables
 let nbComponents = 0;
+let actualDom: Element = null;
 
 // Base class for components
 interface PropsComponent {

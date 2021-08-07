@@ -48,7 +48,7 @@ function createHTMLTag(e: Element):HTMLElement | string {
 
   // Case of Element being a Component
   if (typeof e.container === 'function') {
-    const instanceComp = new e.container(e.attributes);
+    const instanceComp = new e.container({...e.attributes, children: e.children});
     const renderElement = instanceComp.render();
     return createHTMLTag(renderElement);
   }

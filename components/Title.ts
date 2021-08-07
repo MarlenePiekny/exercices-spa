@@ -7,13 +7,17 @@ class Title extends Component {
   }
 
   render(): Element {
-    const { type } = this.props;
+    const { type, subTitle, children } = this.props;
+    const c = [
+      ε.createElement('text', {}, children)
+    ];
+    if (subTitle) {
+      c.push(ε.createElement('span', {class: "text-red-600"}, [ε.createElement('text', {}, subTitle)]))
+    }
     return ε.createElement(
       type,
       {},
-      [
-        ε.createElement('text', {}, 'HELLO WORLD')
-      ],
+      c,
     );
   }
 }
