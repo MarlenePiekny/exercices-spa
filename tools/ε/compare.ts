@@ -3,7 +3,8 @@ import {
   Element,
 } from './frameworkTypes';
 
-export function compare(currentDom: Element, nextDom: Element):boolean {
+export default function compare(currentDom: Element, nextDom: Element):boolean {
+  console.log(typeof currentDom);
   const currentDomStretch = stretchElement(currentDom);
   const nextDomStretch = stretchElement(nextDom);
   console.log('current :', currentDomStretch);
