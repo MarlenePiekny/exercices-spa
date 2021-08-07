@@ -1,5 +1,7 @@
+import ε from './tools/ε';
 import Header from './components/Header';
 
-const header = new Header();
+ε.start(Header, document.getElementById('root'));
 
-console.log(header.render());
+const inst = new Header();
+console.log(ε.elementToString(inst.render()));

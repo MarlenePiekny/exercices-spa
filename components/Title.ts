@@ -2,9 +2,14 @@ import ε, { Component, Element } from '../tools/ε';
 
 class Title extends Component {
 
-  render (): Element {
+  constructor(props) {
+    super(props);
+  }
+
+  render(): Element {
+    const { type } = this.props;
     return ε.createElement(
-      'h1',
+      type,
       {},
       [
         ε.createElement('text', {}, 'HELLO WORLD')
