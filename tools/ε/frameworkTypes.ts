@@ -1,7 +1,7 @@
 import { Component } from ".";
 
 export interface Element<C = any> {
-  // id: number;
+  _id?: number;
   container: C;
   attributes: Attributes;
   children: Children;

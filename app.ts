@@ -1,4 +1,4 @@
 import ε from './tools/ε';
-import Header from './components/Header';
+import App from './components/App';
 
-ε.start(Header, document.getElementById('root'));
+ε.start(App, document.getElementById('root'));
