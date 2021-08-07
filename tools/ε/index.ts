@@ -5,10 +5,12 @@ import {
 } from './frameworkTypes';
 import elementToHTML from './elementToHtml';
 import elementToString from './elementToString';
+import {compare} from './compare';
 
 // Variables
 let nbComponents = 0;
 let actualDom: Element = null;
+let wantToUpdate: boolean = false;
 
 // Base class for components
 interface PropsComponent {
@@ -52,7 +54,8 @@ function start(rootComponent: any, rootHtml: HTMLElement): void {
 
 export {
   Component,
-  Element
+  Element,
+  compare,
 };
 
 export default {
