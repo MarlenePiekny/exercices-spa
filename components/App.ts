@@ -5,8 +5,8 @@ import Counter from './Counter';
 
 class App extends Component {
 
-  constructor(props) {
-    super(props);
+  constructor(props, id) {
+    super(props, id);
     
   }
 

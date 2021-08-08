@@ -2,8 +2,8 @@ import ε, { Component } from '../tools/ε';
 
 class Number extends Component {
 
-  constructor(props) {
-    super(props);
+  constructor(props, id) {
+    super(props, id);
   }
 
   render() {

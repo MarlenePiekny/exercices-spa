@@ -2,6 +2,7 @@ import { Component } from ".";
 
 export interface Element<C = any> {
   _id?: number;
+  _forceRender?: boolean;
   container: C;
   attributes: Attributes;
   children: Children;

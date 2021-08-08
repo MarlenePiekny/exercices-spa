@@ -6,8 +6,8 @@ import Button from './Button';
 
 class Counter extends Component {
 
-  constructor(props) {
-    super(props);
+  constructor(props, id) {
+    super(props, id);
     this.state = {
       number: this.props.defaultNumber || 0
     }
@@ -16,6 +16,16 @@ class Counter extends Component {
   addOne = () => {
     this.setState(state => ({
       number: state.number + 1,
+    }));
+  }
+  subOne = () => {
+    this.setState(state => ({
+      number: state.number - 1,
+    }));
+  }
+  reset = () => {
+    this.setState(state => ({
+      number: 0,
     }));
   }
 
@@ -27,7 +37,7 @@ class Counter extends Component {
       { class: "w-6/12 border-2 p-5 flex flex-col items-center"},
       [
         ε.createElement(Number, { number }, []),
-        ε.createElement(Button, { handleClick: this.addOne }, []),
+        ε.createElement(Button, { handleClick: this.addOne}, "Add one !" ),
       ],
     );
   }
