@@ -19,7 +19,7 @@ interface INT_INST_COMP {
 let nbComponents = 0;
 let rootName: string | null = null;
 let actualDom: Element | string | null = null;
-let haveToUpdate: string | null = null;
+let haveToUpdate: boolean = false;
 const INST_COMP: INT_INST_COMP = {};
 
 // Base class for components
@@ -58,7 +58,7 @@ abstract class Component {
       ...newState
     }
 
-    haveToUpdate = this._id;
+    haveToUpdate = true;
     if(callback) {
       callback(newState);
     }
@@ -272,7 +272,7 @@ function updateDom() {
       })
       actualDom = newDOM
     }
-    haveToUpdate = null;
+    haveToUpdate = false;
   }
 }
 
