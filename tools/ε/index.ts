@@ -154,20 +154,27 @@ function createIDForElement(parent: Element, element: Element, elementPosition: 
 
 function activateComponent(e: Element, register:boolean): Element {
   let render;
-  const name = e.container.name;
-  if(e._forceRender && name in INST_COMP) {
+  if(e._forceRender && e._id in INST_COMP) {
     const newInstance = new e.container({...e.attributes, children: e.children});
     updateOneInstance(e._id, newInstance, newInstance.props, newInstance.state);
     render = newInstance.render()(e._id);
-  } else if (name in INST_COMP) {
-    const c = INST_COMP[name];
+  } else if (e._id in INST_COMP) {
+    const c = INST_COMP[e._id];
     if (!isPropsAndStateEqual(c.props, c.state, c.instance.props, c.instance.state)) {
       updateOneInstance(e._id, c.instance, c.instance.props, c.instance.state);
       render = c.instance.render()(e._id);
       if(typeof render.children !== 'string') {
-        render.children.forEach(child => {
-          child._forceRender = true;
-        });
+        render.children = render.children.reduce((acc, child, i) => {
+          const element = child();
+          acc.push((_id) => ({
+            _id,
+            _forceRender: true,
+            container: element.container,
+            attributes: element.attributes,
+            children: element.children
+          }));
+          return acc;
+        }, []);
       }
     } else {
       render = e;
@@ -245,6 +252,7 @@ function updateDom() {
     const newDOM = getVirtualDom(newRender, false);
     // Fonction diff basique, à modifier pour qu'elle donne des infos plus pertinente
     const diff = makeDiff(newDOM,actualDom, newRender);
+    console.log(diff)
     // Cette exemple d'update du DOM est très limité
     // A vous de modifier d'essayer de la rendre utile pour tous les cas.
     if (diff.length > 0) {
@@ -290,14 +298,18 @@ interface DiffInfos {
 type Diff = DiffInfos[];
 
 function compareElement(newElement, oldElement, parent): Diff {
+  console.log('old: ', oldElement);
+  console.log('new: ', newElement)
   let diff: Diff = [];
   const keysToCheck = ["container", "attributes", "children"];
   for (let i = 0; i < keysToCheck.length; i++) {
     const key = keysToCheck[i];
+    console.log(key)
     if(key !== 'children' || 
       (key === 'children' && 
       typeof newElement.children === 'string' &&
       typeof oldElement.children === 'string' )) {
+        console.log('HELLO')
         if(!isEqual(newElement[key], oldElement[key])){
           diff.push({
             parent,
@@ -310,6 +322,7 @@ function compareElement(newElement, oldElement, parent): Diff {
         }
     } else if (key === 'children' && 
       typeof newElement.children !== typeof oldElement.children) {
+        console.log('HELLO 2')
         diff.push({
           parent,
           element: newElement,
@@ -321,12 +334,15 @@ function compareElement(newElement, oldElement, parent): Diff {
     } else if  (key === 'children' &&
       typeof newElement.children === 'function' &&
       typeof oldElement.children === 'function') {
+        console.log('HELLO 3')
         const lengthNewChildren = newElement.children.length;
         const lengthOldChildren = oldElement.children.length;
         const maxLength = Math.max(lengthNewChildren, lengthOldChildren);
         for (let k = 0; k < maxLength; k++) {
+          console.log('DIFF: ', newElement.children[k]);
           if(newElement.children[k] && oldElement.children[k]) {
-            return compareElement(newElement.children[k], oldElement.children[k], newElement);
+            // return compareElement(newElement.children[k], oldElement.children[k], newElement);
+            diff = [...diff, ...compareElement(newElement.children[k], oldElement.children[k], newElement)]
           } else if (newElement.children[k]) {
             diff.push({
               parent,
