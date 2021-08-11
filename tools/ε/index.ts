@@ -22,6 +22,7 @@ let rootName: string | null = null;
 let actualDom: Element | string | null = null;
 let haveToUpdate: boolean = false;
 const INST_COMP: INT_INST_COMP = {};
+let updating: boolean = false;
 
 // Base class for components
 interface PropsComponent {
@@ -152,14 +153,22 @@ function createIDForElement(parent: Element, element: Element, elementPosition: 
   return `${typeof parent.container !== 'string' ? parent.container.name: parent.container}-${elementPosition}-${typeof element.container !== 'string' ? element.container.name: element.container}-${typeof element.children !== 'string' ? element.children.length : 0}`;
 }
 
+function reRenderElement(e): Element {
+  updateOneInstance(
+    e._id,
+    INST_COMP[e._id].instance,
+    {...e.attributes, children: e.children},
+    INST_COMP[e._id].state
+  );
+  INST_COMP[e._id].instance.props = {...e.attributes, children: e.children};
+  return INST_COMP[e._id].instance.render()(e._id);
+}
+
 function activateComponent(e: Element, register:boolean): Element {
   let render;
   if(e._forceRender && e._id in INST_COMP) {
-    const newInstance = new e.container({...e.attributes, children: e.children});
-    // console.log(INST_COMP[e._id])
-    updateOneInstance(e._id, newInstance, newInstance.props, newInstance.state);
-    // INST_COMP[e._id].instance.props = {...e.attributes, children: e.children};
-    render = newInstance.render()(e._id);
+    // const newInstance = new e.container({...e.attributes, children: e.children});
+    render = reRenderElement(e);
   } else if (e._id in INST_COMP) {
     const c = INST_COMP[e._id];
     if (!isPropsAndStateEqual(c.props, c.state, c.instance.props, c.instance.state)) {
@@ -246,7 +255,7 @@ function startUpdateLoop() {
 
 
 function updateDom() {
-  if (haveToUpdate && typeof actualDom === 'object') {
+  if (haveToUpdate && !updating && typeof actualDom === 'object') {
     const idRoot = createIDForElement(
       {container: 'App', attributes: {}, children: []}
       , INST_COMP[Object.keys(INST_COMP)[0]].instance.render()(), 0);
@@ -257,6 +266,7 @@ function updateDom() {
     // Cette exemple d'update du DOM est très limité
     // A vous de modifier d'essayer de la rendre utile pour tous les cas.
     if (diff.length > 0) {
+      updating = true;
       diff.forEach(d => {
         if(d.element._id) {
           let bloc;
@@ -290,7 +300,8 @@ function updateDom() {
           }
         }
       })
-      actualDom = newDOM
+      actualDom = newDOM;
+      updating = false;
     }
     haveToUpdate = false;
   }
