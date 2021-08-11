@@ -5,13 +5,13 @@ import Counter from './Counter';
 
 class App extends Component {
 
-  constructor(props, id) {
-    super(props, id);
+  constructor(props) {
+    super(props);
     
   }
 
   render() {
-    return this.return(
+    return ε.createElement(
       'div',
       { class: "w-full flex justify-center mt-5"},
       [

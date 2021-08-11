@@ -2,7 +2,8 @@ import { isEqual } from 'lodash';
 import {
   Element,
   Attributes,
-  Children
+  Children,
+  FnToElement
 } from './frameworkTypes';
 import elementToString from './elementToString';
 
@@ -30,16 +31,10 @@ interface StateComponent {
   [name: string]: any;
 }
 abstract class Component {
-  _id: number;
   props: PropsComponent = {};
   state: StateComponent = {};
-  constructor(props = {}, increment: number | boolean) {
+  constructor(props = {}) {
     this.props = props;
-    if(typeof increment === 'boolean') {
-      this._id = nbComponents ++;
-    } else if(typeof increment === 'number') {
-      this._id = increment;
-    }
   }
 
   setState = (changeState: any, callback?: any) => {
@@ -65,16 +60,14 @@ abstract class Component {
 
   }
 
-  return = <C>(name: C, attributes: Attributes, children: Children): Element => {
-    return createElement(name, attributes, children, this._id);
-  }
+  abstract render(): FnToElement;
 }
 
 /**
  * Create an element
  */
-function createElement<C>(name: C, attributes: Attributes, children: Children, _id?: number ): Element<C> {
-  return ({
+function createElement<C>(name: C, attributes: Attributes, children: Children ): FnToElement {
+  return (_id) => ({
     _id,
     container: name,
     attributes,
@@ -136,17 +129,11 @@ function createHTMLTag(e: Element):HTMLElement | string {
       }
     }
   }
-
-  // Case of Element being a Component
-  // if (typeof e.container === 'function') {
-  //   const renderElement = INST_COMP[e._id].render();
-  //   return createHTMLTag(renderElement);
-  // }
 }
 
-function updateOneInstance(name, instance, props, state) {
+function updateOneInstance(id, instance, props, state) {
   // Counting on Name to identity the component is a mistake, We Can not reuse the component! 
-  INST_COMP[name] = {
+  INST_COMP[id] = {
     instance,
     props: JSON.parse(JSON.stringify(props)),
     state: JSON.parse(JSON.stringify(state))
@@ -160,18 +147,23 @@ function isPropsAndStateEqual(oldProps: any, oldState: any, newProps: any, newSt
   return equal;
 }
 
+function createIDForElement(parent: Element, element: Element, elementPosition: number) {
+  // id: name_parent-position_element-name_element-nb_children_element
+  return `${typeof parent.container !== 'string' ? parent.container.name: parent.container}-${elementPosition}-${typeof element.container !== 'string' ? element.container.name: element.container}-${typeof element.children !== 'string' ? element.children.length : 0}`;
+}
+
 function activateComponent(e: Element, register:boolean): Element {
   let render;
   const name = e.container.name;
   if(e._forceRender && name in INST_COMP) {
-    const newInstance = new e.container({...e.attributes, children: e.children}, e._id);
-    updateOneInstance(name, newInstance, newInstance.props, newInstance.state);
-    render = newInstance.render();
+    const newInstance = new e.container({...e.attributes, children: e.children});
+    updateOneInstance(e._id, newInstance, newInstance.props, newInstance.state);
+    render = newInstance.render()(e._id);
   } else if (name in INST_COMP) {
     const c = INST_COMP[name];
     if (!isPropsAndStateEqual(c.props, c.state, c.instance.props, c.instance.state)) {
-      updateOneInstance(name, c.instance, c.instance.props, c.instance.state);
-      render = c.instance.render();
+      updateOneInstance(e._id, c.instance, c.instance.props, c.instance.state);
+      render = c.instance.render()(e._id);
       if(typeof render.children !== 'string') {
         render.children.forEach(child => {
           child._forceRender = true;
@@ -181,11 +173,12 @@ function activateComponent(e: Element, register:boolean): Element {
       render = e;
     }
   } else {
-    const instance = new e.container({...e.attributes, children: e.children}, true);
+    const instance = new e.container({...e.attributes, children: e.children});
     if(register) {
-      updateOneInstance(name, instance, instance.props, instance.state);
+      updateOneInstance(e._id, instance, instance.props, instance.state);
     }
-    render = instance.render();
+
+    render = instance.render()(e._id);
   }
   return render;
 }
@@ -200,7 +193,10 @@ function getChildrenElements(e: Element, register: boolean) {
 
   if (typeof elementToReturn.children !== 'string') {
     let colChildren;
-    colChildren = (elementToReturn.children as Element[]).map(child => getChildrenElements(child, register));
+    colChildren = (elementToReturn.children as FnToElement[]).map((child, i) => {
+      const _id = createIDForElement(e, child(), i);
+      return getChildrenElements(child(_id), register)}
+      );
     elementToReturn.children = colChildren;
   }
   return elementToReturn;
@@ -212,9 +208,12 @@ function getVirtualDom(e: Element, register: boolean = true) {
 
 function start(rootComponent: any, rootHtml: HTMLElement): void {
   const instance = new rootComponent({}, true);
-  const element = instance.render();
+  const idRoot = createIDForElement(
+    {container: 'App', attributes: {}, children: []}
+    , instance.render()(), 0);
+  const element = instance.render()(idRoot);
   rootName = rootComponent.name;
-  updateOneInstance(rootComponent.name, instance, instance.props, instance.state);
+  updateOneInstance(idRoot, instance, instance.props, instance.state);
   const virtualDom = getVirtualDom(element);
   const site = elementToHTML(virtualDom);
   if (!actualDom) {
@@ -239,7 +238,10 @@ function startUpdateLoop() {
 
 function updateDom() {
   if (haveToUpdate && typeof actualDom === 'object') {
-    const newRender = INST_COMP[rootName].instance.render();
+    const idRoot = createIDForElement(
+      {container: 'App', attributes: {}, children: []}
+      , INST_COMP[Object.keys(INST_COMP)[0]].instance.render()(), 0);
+    const newRender = INST_COMP[idRoot].instance.render()(idRoot);
     const newDOM = getVirtualDom(newRender, false);
     // Fonction diff basique, à modifier pour qu'elle donne des infos plus pertinente
     const diff = makeDiff(newDOM,actualDom, newRender);
@@ -317,8 +319,8 @@ function compareElement(newElement, oldElement, parent): Diff {
           }
         });
     } else if  (key === 'children' &&
-      typeof newElement.children === 'object' &&
-      typeof oldElement.children === 'object') {
+      typeof newElement.children === 'function' &&
+      typeof oldElement.children === 'function') {
         const lengthNewChildren = newElement.children.length;
         const lengthOldChildren = oldElement.children.length;
         const maxLength = Math.max(lengthNewChildren, lengthOldChildren);
