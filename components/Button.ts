@@ -10,7 +10,7 @@ class Button extends Component {
     const { handleClick, children } = this.props;
     return ε.createElement(
       'button',
-      { class: "font-bold mb-5", onClick: handleClick },
+      { class: "font-bold ", onClick: handleClick },
       [ε.createElement('text', {}, children)]
     );
   }

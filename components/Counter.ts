@@ -38,6 +38,8 @@ class Counter extends Component {
       [
         ε.createElement(Number, { number }, []),
         ε.createElement(Button, { handleClick: this.addOne}, "Add one !" ),
+        ε.createElement(Button, { handleClick: this.subOne}, "Sub one !" ),
+        ε.createElement(Button, { handleClick: this.reset}, "Reset !" ),
       ],
     );
   }
