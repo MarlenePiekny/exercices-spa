@@ -17,8 +17,6 @@ interface INT_INST_COMP {
 };
 
 // Variables
-let nbComponents = 0;
-let rootName: string | null = null;
 let actualDom: Element | string | null = null;
 let haveToUpdate: boolean = false;
 const INST_COMP: INT_INST_COMP = {};
@@ -48,17 +46,23 @@ abstract class Component {
     } else {
       console.info('New state can be only object or function that return object');
     }
-    
-    this.state = {
+
+    const mergedState = {
       ...copyState,
       ...newState
-    }
+    };
 
+    // if (!isEqual(mergedState, this.state)) {
+    //   this.state = mergedState;
+    //   haveToUpdate = true;
+    // }
+
+    this.state = mergedState;
     haveToUpdate = true;
+
     if(callback) {
       callback(newState);
     }
-
   }
 
   abstract render(): FnToElement;
@@ -188,7 +192,7 @@ function activateComponent(e: Element, register:boolean): Element {
         }, []);
       }
     } else {
-      render = e;
+      render = c.instance.render()(e._id);
     }
   } else {
     const instance = new e.container({...e.attributes, children: e.children});
@@ -208,7 +212,6 @@ function getChildrenElements(e: Element, register: boolean) {
   } else {
     elementToReturn = e;
   }
-
   if (typeof elementToReturn.children !== 'string') {
     let colChildren;
     colChildren = (elementToReturn.children as FnToElement[]).map((child, i) => {
@@ -230,7 +233,6 @@ function start(rootComponent: any, rootHtml: HTMLElement): void {
     {container: 'App', attributes: {}, children: []}
     , instance.render()(), 0);
   const element = instance.render()(idRoot);
-  rootName = rootComponent.name;
   updateOneInstance(idRoot, instance, instance.props, instance.state);
   const virtualDom = getVirtualDom(element);
   const site = elementToHTML(virtualDom);

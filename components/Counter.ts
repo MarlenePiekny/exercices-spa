@@ -2,7 +2,7 @@ import ε, { Component } from '../tools/ε';
 
 // import components
 import Number from './Number';
-import Button from './Button';
+import WrapperButtons from './WrapperButtons';
 
 class Counter extends Component {
 
@@ -37,9 +37,11 @@ class Counter extends Component {
       { class: "w-6/12 border-2 p-5 flex flex-col items-center"},
       [
         ε.createElement(Number, { number }, []),
-        ε.createElement(Button, { handleClick: this.addOne}, "Add one !" ),
-        ε.createElement(Button, { handleClick: this.subOne}, "Sub one !" ),
-        ε.createElement(Button, { handleClick: this.reset}, "Reset !" ),
+        ε.createElement(WrapperButtons, {
+          addOne: this.addOne,
+          subOne: this.subOne,
+          reset: this.reset,
+        }, [] ),
       ],
     );
   }
