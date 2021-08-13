@@ -2,6 +2,10 @@ import {Element} from './frameworkTypes';
 
 // parent class for components
 abstract class Component {
+    props:any = {};
+    constructor(props) {
+        this.props = props;
+    }
     abstract render(): Element
 }
 
@@ -14,18 +18,8 @@ function createElement(name, attributes, children) {
 };
 
 function elementsToHTML(VDOM) {
-    if (!VDOM.children) {
-        let e = document.createElement(VDOM.name);
+    let e = document.createElement(VDOM.name);
         for ( const attribute in VDOM.attributes) {
-            console.log(`${attribute} : ${VDOM.attributes[attribute]}`);
-            e.setAttribute(`${attribute}` , `${VDOM.attributes[attribute]}`)
-        }
-        return e;
-    } else {
-        console.log('coucou');
-        let e = document.createElement(VDOM.name);
-        for ( const attribute in VDOM.attributes) {
-            console.log(`${attribute} : ${VDOM.attributes[attribute]}`);
             e.setAttribute(`${attribute}` , `${VDOM.attributes[attribute]}`)
         }
         VDOM.children.forEach(child=> {
@@ -36,7 +30,6 @@ function elementsToHTML(VDOM) {
             }
         })
         return e;
-    }
 }
 
 
@@ -52,7 +45,7 @@ function getElement(element) {
         element.children = childrenCol;
         elementToReturn = element;
     } else {
-        const instance = new element.name();
+        const instance = new element.name({...element.attributes, children: element.children});
         const render = instance.render();
         elementToReturn = getElement(render);
     }
